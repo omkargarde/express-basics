@@ -50,9 +50,11 @@ export async function registerUser(req, res) {
       text: `Please click on the following link:
             ${process.env.BASE_URL}/api/v1/users/verify/${token}
             `,
+      category: "Integration Test",
+      sandbox: true,
     };
 
-    transporter.sendMail(mailOption);
+    transporter.sendMail(mailOption).then(console.log, console.error);
 
     res.status(201).json({
       message: "User registered successfully",
