@@ -12,7 +12,6 @@ export async function connectToMongo() {
 				`reconnected to mongo at port ${mongoose.connection.host}:${mongoose.connection.port} \n`,
 			),
 		);
-
 		mongoose.connection.on("disconnected", () =>
 			console.log("disconnected from mongo"),
 		);
