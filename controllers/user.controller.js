@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import { User } from "../models/user.model.js";
 
 // send success status to user
-export const registerUser = async (req, res) => {
+export async function registerUser(req, res) {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({
@@ -18,9 +18,9 @@ export const registerUser = async (req, res) => {
     }
 
     const newUser = await User.create({
-      name: name,
-      email: email,
-      password: password,
+      name,
+      email,
+      password,
     });
     if (!newUser) {
       return res.status(400).json({
@@ -65,6 +65,6 @@ export const registerUser = async (req, res) => {
       success: false,
     });
   }
-};
-export const loginUser = async () => {};
-export const verifyUser = async () => {};
+}
+export async function loginUser() {}
+export async function verifyUser() {}

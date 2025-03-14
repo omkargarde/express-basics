@@ -1,4 +1,3 @@
-
 #[docs]([https://stackoverflow.com/questions/23259168/what-are-express-json-and-express-urlencoded])
 
 the **express.json()** and **express.urlencoded()** middleware are used for **POST** and **PUT** http method specifically where we are accepting data from the client
@@ -11,8 +10,8 @@ the **express.json()** and **express.urlencoded()** middleware are used for **PO
 
 ```html
 <form action="/" method="POST">
-    <input type="text" name="username">
-    <button>Submit</button>
+  <input type="text" name="username" />
+  <button>Submit</button>
 </form>
 ```
 
@@ -22,21 +21,19 @@ const app = express()
 
 app.use(express.json())
 // app.use(express.urlencoded({ extended: false }))
-app.use(express.static("public"))
+app.use(express.static('public'))
 
-
-app.get("/", (req, res) => {
-    res.sendFile("index.html")
+app.get('/', (req, res) => {
+  res.sendFile('index.html')
 })
 
-app.post("/", (req, res) => {
-    res.send(req.body)
+app.post('/', (req, res) => {
+  res.send(req.body)
 })
-
 
 const port = process.env.PORT || 3001
 app.listen(port, () => {
-    console.log(`Server Up in Port ${port}`);
+  console.log(`Server Up in Port ${port}`)
 })
 ```
 
