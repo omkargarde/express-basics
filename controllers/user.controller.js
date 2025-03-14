@@ -69,4 +69,19 @@ export async function registerUser(req, res) {
   }
 }
 export async function loginUser() {}
-export async function verifyUser() {}
+
+export async function verifyUser(req, res) {
+  const { token } = req.params;
+  if (!token) {
+    return res.status(400).json({ error: "token is not required" });
+  }
+  const existingToken = User.findOne({ verificationToken: token });
+  if (!existingToken) {
+    return res.status(400).json({
+      message: "Token not found",
+    });
+  }
+  existingToken.isVerified = true;
+  existingToken.verificationToken = null;
+  await existingToken.save();
+}
