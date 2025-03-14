@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { User } from "../models/user.model.js";
 
@@ -5,6 +6,7 @@ import { User } from "../models/user.model.js";
 export async function registerUser(req, res) {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
+    console.table([name, email, password]);
     return res.status(400).json({
       message: "All fields are not provided",
     });
@@ -48,13 +50,11 @@ export async function registerUser(req, res) {
       to: newUser.email,
       subject: "Verify your email", // Subject line
       text: `Please click on the following link:
-            ${process.env.BASE_URL}/api/v1/users/verify/${token}
+            ${process.env.BASE_URL}:${process.env.PORT}/api/v1/users/verify/${token}
             `,
-      category: "Integration Test",
-      sandbox: true,
     };
 
-    transporter.sendMail(mailOption).then(console.log, console.error);
+    await transporter.sendMail(mailOption).then(console.log, console.error);
 
     res.status(201).json({
       message: "User registered successfully",
@@ -63,7 +63,7 @@ export async function registerUser(req, res) {
   } catch (error) {
     res.status(400).json({
       message: "User not registered ",
-      error,
+      error: error,
       success: false,
     });
   }
@@ -75,13 +75,27 @@ export async function verifyUser(req, res) {
   if (!token) {
     return res.status(400).json({ error: "token is not required" });
   }
-  const existingToken = User.findOne({ verificationToken: token });
-  if (!existingToken) {
-    return res.status(400).json({
-      message: "Token not found",
+  console.log("token ", token);
+  try {
+    const existingToken = await User.findOne({ verificationToken: token });
+    if (!existingToken) {
+      return res.status(400).json({
+        message: "Token not found",
+      });
+    }
+    existingToken.isVerified = true;
+    existingToken.verificationToken = null;
+    await existingToken.save();
+    return res.status(200).json({
+      message: "User verified successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error verifying user:", error);
+    return res.status(500).json({
+      message: "Error verifying user",
+      error: error.message,
+      success: false,
     });
   }
-  existingToken.isVerified = true;
-  existingToken.verificationToken = null;
-  await existingToken.save();
 }

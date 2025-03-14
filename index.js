@@ -25,5 +25,7 @@ app.use("/api/v1/todos", todoRouter);
 app.use("/api/v1/users", userRouter);
 
 app.listen(port, () => {
-  console.log(`\nserver is listening on port ${port} \n`);
+  console.log(
+    `\nserver is listening on port ${process.env.BASE_URL}:${port} \n`
+  );
 });

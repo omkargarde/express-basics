@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "api-collections",
+  "name": "api-collections-express-basics",
   "type": "collection",
   "ignore": [
     "node_modules",
