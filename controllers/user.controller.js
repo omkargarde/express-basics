@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { User } from "../models/user.model.js";
@@ -113,7 +114,8 @@ export async function loginUser(req, res) {
         message: "wrong email or password",
       });
     }
-    if (user.password !== password) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(400).json({
         message: "wrong email or password",
       });
