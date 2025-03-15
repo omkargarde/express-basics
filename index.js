@@ -1,5 +1,7 @@
 import cors from "cors";
 import express from "express";
+import errorMiddleware from "./middleware/error.middleware.js";
+import loggerMiddleware from "./middleware/logger.middleware.js";
 import { todoRouter } from "./routes/todo.route.js";
 import { userRouter } from "./routes/user.route.js";
 import { connectToMongo } from "./utils/db.js";
@@ -16,13 +18,18 @@ app.use(express.json());
 // to parse all json data in html formData
 app.use(express.urlencoded({ extended: true }));
 
-// maybe implement health checker or documentation
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+// custom middlewares
+app.use(loggerMiddleware);
+// has to be last always
+app.use(errorMiddleware);
 
 app.use("/api/v1/todos", todoRouter);
 app.use("/api/v1/users", userRouter);
+
+app.get("/", (req, res) => {
+  req.log.info("hello world");
+  res.send("Hello World!");
+});
 
 app.listen(port, () => {
   console.log(

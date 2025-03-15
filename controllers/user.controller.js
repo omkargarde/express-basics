@@ -1,22 +1,33 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import {
+  APP_ERROR_MESSAGE,
+  HTTP_RESPONSE_CODE,
+} from "../constants/constants.js";
+import { HttpException } from "../constants/httpException.js";
 import { User } from "../models/user.model.js";
 
-export async function registerUser(req, res) {
+export async function registerUser(req, res, next) {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     console.table([name, email, password]);
-    return res.status(400).json({
-      message: "All fields are not provided",
-    });
+    return next(
+      new HttpException(
+        HTTP_RESPONSE_CODE.BAD_REQUEST,
+        APP_ERROR_MESSAGE.notProvideAllCredentials
+      )
+    );
   }
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({
-        message: "User already exists",
-      });
+      return next(
+        new HttpException(
+          HTTP_RESPONSE_CODE.CONFLICT,
+          APP_ERROR_MESSAGE.userAlreadyExist
+        )
+      );
     }
 
     const newUser = await User.create({
@@ -25,9 +36,9 @@ export async function registerUser(req, res) {
       password,
     });
     if (!newUser) {
-      return res.status(400).json({
-        message: "Failed to create new user",
-      });
+      return next(
+        new HttpException(HTTP_RESPONSE_CODE.SERVER_ERROR, APP_ERROR_MESSAGE)
+      );
     }
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -61,26 +72,36 @@ export async function registerUser(req, res) {
       success: true,
     });
   } catch (error) {
-    res.status(400).json({
-      message: "User not registered ",
-      error: error,
-      success: false,
-    });
+    return next(
+      new HttpException(
+        HTTP_RESPONSE_CODE.SERVER_ERROR,
+        APP_ERROR_MESSAGE.notCreatedUser,
+        error
+      )
+    );
   }
 }
 
-export async function verifyUser(req, res) {
+export async function verifyUser(req, res, next) {
   const { token } = req.params;
   if (!token) {
-    return res.status(400).json({ error: "token is not required" });
+    return next(
+      new HttpException(
+        HTTP_RESPONSE_CODE.BAD_REQUEST,
+        APP_ERROR_MESSAGE.tokenNotProvided
+      )
+    );
   }
   console.log("token ", token);
   try {
     const existingToken = await User.findOne({ verificationToken: token });
     if (!existingToken) {
-      return res.status(400).json({
-        message: "Token not found",
-      });
+      return next(
+        new HttpException(
+          HTTP_RESPONSE_CODE.BAD_REQUEST,
+          APP_ERROR_MESSAGE.tokenInvalid
+        )
+      );
     }
     existingToken.isVerified = true;
     existingToken.verificationToken = null;
@@ -99,26 +120,35 @@ export async function verifyUser(req, res) {
   }
 }
 
-export async function loginUser(req, res) {
+export async function loginUser(req, res, next) {
   const { email, password } = req.body;
   if (!email || !password) {
     console.table([email, password]);
-    return res.status(400).json({
-      message: "All fields are not provided",
-    });
+    return next(
+      new HttpException(
+        HTTP_RESPONSE_CODE.BAD_REQUEST,
+        APP_ERROR_MESSAGE.notProvideAllCredentials
+      )
+    );
   }
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({
-        message: "wrong email or password",
-      });
+      return next(
+        new HttpException(
+          HTTP_RESPONSE_CODE.BAD_REQUEST,
+          APP_ERROR_MESSAGE.invalidCredentials
+        )
+      );
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({
-        message: "wrong email or password",
-      });
+      return next(
+        new HttpException(
+          HTTP_RESPONSE_CODE.BAD_REQUEST,
+          APP_ERROR_MESSAGE.invalidCredentials
+        )
+      );
     }
     return res.status(200).json({
       message: "User login in successfully",
@@ -126,10 +156,11 @@ export async function loginUser(req, res) {
     });
   } catch (error) {
     console.error("Error user not found", error);
-    return res.status(500).json({
-      message: "Error user not found",
-      error: error.message,
-      success: false,
-    });
+    return next(
+      new HttpException(
+        HTTP_RESPONSE_CODE.SERVER_ERROR,
+        APP_ERROR_MESSAGE.serverError
+      )
+    );
   }
 }
