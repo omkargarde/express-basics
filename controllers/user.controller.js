@@ -2,7 +2,6 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { User } from "../models/user.model.js";
 
-// send success status to user
 export async function registerUser(req, res) {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
@@ -68,7 +67,6 @@ export async function registerUser(req, res) {
     });
   }
 }
-export async function loginUser() {}
 
 export async function verifyUser(req, res) {
   const { token } = req.params;
@@ -94,6 +92,40 @@ export async function verifyUser(req, res) {
     console.error("Error verifying user:", error);
     return res.status(500).json({
       message: "Error verifying user",
+      error: error.message,
+      success: false,
+    });
+  }
+}
+
+export async function loginUser(req, res) {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    console.table([email, password]);
+    return res.status(400).json({
+      message: "All fields are not provided",
+    });
+  }
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message: "wrong email or password",
+      });
+    }
+    if (user.password !== password) {
+      return res.status(400).json({
+        message: "wrong email or password",
+      });
+    }
+    return res.status(200).json({
+      message: "User login in successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error user not found", error);
+    return res.status(500).json({
+      message: "Error user not found",
       error: error.message,
       success: false,
     });

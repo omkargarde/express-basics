@@ -11,5 +11,6 @@ export const userRouter = new Router();
 userRouter.post("/login", loginUser);
 // register
 userRouter.post("/register", registerUser);
-// verification, why get
+// verification, why get?
+// browser can only execute "GET" verb
 userRouter.get("/verify/:token", verifyUser);
